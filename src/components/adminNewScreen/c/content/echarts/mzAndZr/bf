@@ -1,0 +1,209 @@
+import * as echarts from 'echarts';
+//渲染数据的时候计算一下 百分比   
+let gap = "10%"
+let BarWidth = "20"
+let symbolSizeValue = [5, 18]
+let option = {
+  legend: {
+    selectedMode: false,
+    data: ['入院', '门诊'],
+    textStyle: {
+      color: "inherit",
+      fontSize: "20",
+      color: "#fff"
+    },
+    top: "1%"
+  },
+  grid: [{
+    left: '2%',
+    right: '5%',
+    bottom: '-5%',
+    top: '8%',
+    containLabel: true
+  }],
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'none'
+    },
+    formatter: function (params) {
+      return params[0].name + '<br/>' +
+        "<span style='display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(36,207,233,0.9)'></span>" +
+        params[0].seriesName + '人数占比: ' + params[0].value + '%' + '<br/>' +
+        "<span style='display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(255,168,121,0.9)'></span>" +
+        params[1].seriesName + '人数占比: ' + params[1].value + '%'
+    }
+  },
+  backgroundColor: 'transparent',
+  xAxis: {
+    show: false,
+    type: 'value'
+  },
+  yAxis: [{
+      type: 'category',
+      inverse: true,
+      axisLabel: {
+        show: true,
+        textStyle: {
+          color: '#fff'
+        },
+        fontSize: 20
+      },
+      splitLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      axisLine: {
+        show: false
+      },
+      data: [],
+    },
+    {
+      type: 'category',
+      show: false,
+      interval: 5,
+      axisTick: {
+        show: false
+      },
+      axisLine: {
+        show: false
+      },
+
+      splitNumber: 6,
+      data: ['1', '2', '3', '4', '5', '6']
+    }
+  ],
+  series: [
+    //背景
+    {
+      yAxisIndex: 1,
+      barGap: gap,
+      type: "pictorialBar",
+      barWidth: BarWidth,
+      symbol: 'fixed',
+      symbolRepeat: 'repeat',
+      legendHoverLink: false,
+      itemStyle: {
+        normal: {
+          color: 'rgba(153, 153, 153, 0.23)'
+        }
+      },
+      data: [],
+      symbolSize: symbolSizeValue,
+      animation: false, //关闭动画
+      z: 0,
+      symbolMargin: 2,
+    },
+    //背景
+    {
+      type: "pictorialBar",
+      show: false,
+      yAxisIndex: 1,
+      barGap: gap,
+      barWidth: BarWidth,
+      symbol: 'fixed',
+      symbolRepeat: 'repeat',
+      legendHoverLink: false,
+      itemStyle: {
+        normal: {
+          color: 'rgba(153, 153, 153, 0.23)'
+        }
+      },
+      data: [],
+      symbolSize: symbolSizeValue,
+      animation: false, //关闭动画
+      z: 0,
+      symbolMargin: 2,
+    },
+    {
+      name: '入院',
+      type: "pictorialBar",
+      barGap: gap,
+      barWidth: BarWidth,
+      legendHoverLink: false,
+      label: {
+        show: true,
+        color: "#fff",
+        fontSize: "16",
+        position: 'right',
+        formatter(p) {
+          return p['value'] + "%"
+        }
+      },
+      itemStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [{
+              offset: 0,
+              color: '#ff9779',
+            },
+            {
+              offset: 1,
+              color: '#ffc079',
+            },
+          ],
+          global: false // 缺省为 false
+        }
+      },
+      symbolRepeat: 'fixed',
+      symbolMargin: 2,
+      symbol: 'rect',
+      symbolClip: true,
+      symbolSize: symbolSizeValue,
+      data: [],
+      z: 1,
+    },
+    {
+      type: "pictorialBar",
+      name: "门诊",
+      barWidth: BarWidth,
+      barGap: gap,
+      label: {
+        normal: {
+          show: true,
+          position: 'right',
+          formatter: '{c}%',
+          textStyle: {
+            color: '#f2f1f1',
+            fontSize: 16
+          }
+        }
+      },
+      legendHoverLink: false,
+      itemStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [{
+              offset: 0,
+              color: '#009cff',
+            },
+            {
+              offset: 1,
+              color: '#00e4ff',
+            },
+          ],
+          global: false // 缺省为 false
+        }
+      },
+      symbolRepeat: 'fixed',
+      symbolMargin: 2,
+      symbol: 'rect',
+      symbolClip: true,
+      symbolSize: symbolSizeValue,
+      data: [],
+      z: 1,
+    },
+
+  ]
+};
+export default option
