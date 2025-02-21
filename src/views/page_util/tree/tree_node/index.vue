@@ -17,7 +17,10 @@
               </div>
               <div v-else style="display: flex; align-items: center">
                 <div>{{ node.label }}</div>
-                <div v-if="node.label == 'data'" style="margin-left: 10px">
+                <div
+                  v-if="node.children && node.type != 'string'"
+                  style="margin-left: 10px"
+                >
                   <Button
                     style=""
                     size="small"
@@ -44,6 +47,7 @@
           :key="child.id"
           :node="child"
           @changeTreeData="changeInputSayToParent"
+          @childInjectMyChangeObject="childInjectMyChangeObject"
         />
       </div>
     </div>
@@ -51,11 +55,15 @@
 </template>
 
 <script>
+import store from "@/store";
 export default {
   name: "treeNode",
   props: {
     node: Object,
-    changeTreeData: Function,
+    // changeTreeData: Function,
+  },
+  data() {
+    return {};
   },
   computed: {
     node_child() {
@@ -73,8 +81,12 @@ export default {
     },
   },
   methods: {
+    childInjectMyChangeObject() {
+      this.$emit("childInjectMyChangeObject", store.getters.getChangeNode);
+    },
     changeData(e, node) {
-      console.log(e, node);
+      store.commit("setChangeNode", node);
+      this.childInjectMyChangeObject();
     },
     changeInputSayToParent() {
       this.$emit("changeTreeData");

@@ -1,7 +1,7 @@
 <template>
   <div style="padding: 5px">
     <div style="display: flex; gap: 10px">
-      <div style="width: 500px; height: calc(100vh - 30px)">
+      <div style="width: 500px; height: calc(100vh - 30px)" class="pageU">
         输入Options源码：
         <codemirror
           ref="cm"
@@ -38,14 +38,7 @@
           }"
         ></div>
       </div>
-      <div
-        style="
-          height: calc(100vh - 10px);
-          overflow-y: scroll;
-          flex: 1;
-          min-width: 400px;
-        "
-      >
+      <div style="flex: 1; min-width: 400px">
         <tree @ifTreeChange="ifTreeChange" ref="tree" />
       </div>
     </div>
@@ -68,8 +61,8 @@ import "codemirror/addon/fold/brace-fold";
 import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/hint/javascript-hint.js";
 import "codemirror/addon/selection/active-line.js";
-import { format } from "prettier/standalone";
-import parserBabel from "prettier/parser-babel";
+
+import util from "./util";
 window.echarts = echarts;
 export default {
   components: {
@@ -79,26 +72,7 @@ export default {
   data() {
     return {
       // 编辑器配置
-      cmOptions: {
-        autorefresh: true,
-        tabSize: 4, //tab空格宽度
-        mode: "text/javascript",
-        line: true,
-        viewportMargin: Infinity, //处理高度自适应时搭配使用
-        highlightDifferences: true,
-        spellcheck: true,
-        autofocus: true,
-        indentWithTab: true,
-        smartIndent: true,
-        styleActiveLine: true, // 设置光标所在行高亮
-        showCursorWhenSelecting: true,
-        lineNumbers: true, // 显示行号
-        // matchBrackets: true, //自动补全括号
-        autoCloseBrackets: true,
-        foldGutter: true,
-        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-        theme: "eclipse",
-      },
+      cmOptions: util.cmOptions,
       dataList: [],
       classOption: {
         direction: 1,
@@ -112,7 +86,47 @@ export default {
       width: "100%",
       height: "50vh",
       backgroundColor: "#fff",
-      optionCode: ` `,
+      optionCode: ` 
+         const data = [];
+for (let i = 0; i <= 360; i++) {
+  let t = (i / 180) * Math.PI;
+  let r = Math.sin(2 * t) * Math.cos(2 * t);
+  data.push([r, i]);
+}
+option = {
+  title: {
+    text: 'Two Value-Axes in Polar'
+  },
+  legend: {
+    data: ['line']
+  },
+  polar: {
+    center: ['50%', '54%']
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  angleAxis: {
+    type: 'value',
+    startAngle: 0
+  },
+  radiusAxis: {
+    min: 0
+  },
+  series: [
+    {
+      coordinateSystem: 'polar',
+      name: 'line',
+      type: 'line',
+      showSymbol: false,
+      data: data
+    }
+  ],
+  animationDuration: 2000
+};`,
     };
   },
   methods: {
@@ -123,11 +137,7 @@ export default {
     ifTreeChange(option_child) {
       this.option = option_child;
       //代码格式化
-      var formattedCode = format(`option = ${JSON.stringify(option_child)}`, {
-        parser: "babel",
-        plugins: [parserBabel],
-        // 你可以在这里添加其他Prettier配置选项
-      });
+      var formattedCode = util.formattedCode(this.option, "option");
       this.optionCode = formattedCode;
       if (this.charts) {
         this.charts.setOption(this.option);
@@ -137,10 +147,12 @@ export default {
       if (this.charts) {
         this.charts.dispose();
         this.charts = null;
-        this.option = null; 
-        if(option){
+        this.option = null;
+        try {
+          if (option) {
             option = null;
-        }
+          }
+        } catch (err) {}
       }
       if (document.querySelector("#echarts_scr")) {
         document.body.removeChild(document.querySelector("#echarts_scr"));
@@ -177,7 +189,7 @@ export default {
 };
 </script> 
 <style>
-.CodeMirror {
+.pageU .CodeMirror {
   height: 90vh !important;
   border: 1px solid #dcdee2;
   margin-bottom: 2px;

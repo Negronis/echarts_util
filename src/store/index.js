@@ -8,20 +8,14 @@ export default new Vuex.Store({
     height: 0,
     width: window.innerWidth,
     reqTimer: "",
-    dateType: "当日",
     deviceType: "pc",
     dpType: "new",
-    // 不受时间筛选影响的请求
-    dtDateSx: [
-      'szjg',
-      'fykzmz',
-      'fykz'
-    ],
-    eObject: {}
+    //要修改的数据
+    changeNode: {}
   },
   getters: {
-    getDateType(state) {
-      return state.dateType
+    getChangeNode(state) {
+      return state.changeNode
     },
     getReqTimer(state) {
       return state.reqTimer
@@ -38,13 +32,10 @@ export default new Vuex.Store({
     getDpType(state) {
       return state.dpType
     },
-    getEObject(state) {
-      return state['eObject']
-    }
   },
   mutations: {
-    setDateType(state, n) {
-      state.dateType = n
+    setChangeNode(state, n) {
+      state.changeNode = n;
     },
     setReqTimer(state, n) {
       state.reqTimer = n
@@ -61,12 +52,5 @@ export default new Vuex.Store({
     setDpType(state, n) {
       state.dpType = n
     },
-    setEObject(state, n) {
-      let {
-        type,
-        data
-      } = n
-      state.eObject[type] = data
-    }
   }
 })
