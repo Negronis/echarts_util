@@ -1,9 +1,6 @@
 <template>
-  <div style="height: calc(100vh - 10px); overflow-y: scroll" class="treeModal">
-    <div>
-      <Button>数据修改</Button>
-    </div>
-    <div style="border: 1px solid; height: 100vh; overflow-y: scroll">
+  <div style="height: calc(98vh); overflow-y: scroll" class="treeModal"> 
+    <div style="border: 1px solid #dcdee2; height: 100%; overflow-y: scroll;padding:10px;">
       <treeNode
         @childInjectMyChangeObject="childInjectMyChangeObject"
         :node="treeData"
@@ -50,15 +47,22 @@ import "codemirror/addon/fold/indent-fold";
 import "codemirror/addon/hint/javascript-hint.js";
 import "codemirror/addon/selection/active-line.js";
 import util from "../util";
+import store from "@/store";
+import JSON5 from "json5";
 export default {
   components: {
     treeNode,
     codemirror,
   },
+  computed: {
+    treeData() {
+      return store.getters.getTreeData;
+    },
+  },
   data() {
     return {
-      treeObject: {},
-      treeData: {}, 
+      //做备份，留给修改使用
+      treeDataBF: {},
       dataArray: [],
       showDataChange: false,
       changeDataObject: {},
@@ -67,6 +71,9 @@ export default {
     };
   },
   methods: {
+    getTreeData() {
+      return store.getters.getTreeData;
+    },
     inputChange(content) {
       this.$nextTick(() => {});
     },
@@ -211,31 +218,33 @@ export default {
       }
       return data;
     },
-    //通过label,parent寻找节点位置 传入新值可进行修改，
-    findThisFromTreeData(node, treeData = this.treeData, isEnd , newData) {
+    //通过label,parent寻找节点位置 传入新值可进行修改
+    findThisFromTreeData(node, treData = this.getTreeData(), isEnd, newData) {
       if (isEnd == true) {
         return node;
       }
       if (!node) {
         return {};
-      } 
+      }
       let { c } = node;
-      if (treeData) {
-        if (treeData.c == c && Array.isArray(treeData) == false) {
+      if (treData) {
+        if (treData.c == c && Array.isArray(treData) == false) {
           return;
         }
-        if (treeData.children) {
-          for (var i = 0; i < treeData.children.length; i++) {
-            let e = treeData.children[i];
+        if (treData.children) {
+          for (var i = 0; i < treData.children.length; i++) {
+            let e = treData.children[i];
             if (e["c"] == c) {
               if (e["c_index"] == node["c_index"]) {
-                if(newData){
-                  treeData.children[i] = newData; 
+                if (newData) {
+                  Object.assign(treData.children[i], newData);   //拷贝，保留关联关系
+                  // treData.children[i] = newData;  //赋值，舍弃关联关系
                 }
-                return this.findThisFromTreeData(node, e, true , newData);
+                store.commit("setTreeData", this.treeDataBF);
+                return this.findThisFromTreeData(node, e, true, newData);
               }
             } else {
-              this.findThisFromTreeData(node, e , false , newData);
+              this.findThisFromTreeData(node, e, false, newData);
             }
           }
         }
@@ -246,15 +255,19 @@ export default {
       if (!obj) {
         return;
       }
-      this.treeObject = obj;
-      this.treeData = this.convertToTree(this.treeObject);
-      this.dataArray = this.getData(this.treeData);
-      console.log(this.treeData);
-      console.log(this.getData(this.treeData));
+      store.commit("setTreeDataObject", obj);
+      this.treeDataBF = this.convertToTree(store.getters.getTreeDataObject);
+      store.commit(
+        "setTreeData",
+        this.convertToTree(store.getters.getTreeDataObject)
+      );
+      // this.dataArray = this.getData(this.getTreeData());
+      console.log(store.getters.getTreeDataObject);
+      console.log(store.getters.getTreeData);
     },
     //子组件通知改变状态，通知父组件重构echarts
     changeTreeData() {
-      let reverseObject = this.reverseTree(this.treeData);
+      let reverseObject = this.reverseTree(this.getTreeData());
       this.$emit("ifTreeChange", reverseObject);
     },
     //子组件通知我要修改某个对象的数据 展开模态框并显示数据结构
@@ -262,32 +275,50 @@ export default {
       this.showDataChange = true;
       this.changeDataObject = this.findThisFromTreeData(node);
       //转换为对象，赋值给修改框
-      let reverseObject = this.reverseTree(this.changeDataObject); 
+      let reverseObject = this.reverseTree(this.changeDataObject);
       //格式化
       let formCode = util.formattedCode(
         reverseObject,
         this.changeDataObject.label
-      ) 
+      );
       // 为防止用户意外篡改结构 已纯对象结构显示，剔除前面的label=
-      this.changeDataCode = formCode.replace(`${this.changeDataObject.label} = ` , "");
+      this.changeDataCode = formCode.replace(
+        `${this.changeDataObject.label} = `,
+        ""
+      );
     },
     //模态框修改确认
     modalOkChange() {
       //字符串分割
       let theCode = this.changeDataCode.substring(
-        this.changeDataCode.indexOf("=") + 1,
-        this.changeDataCode.lastIndexOf("}") + 1
+        0,
+        this.changeDataCode.lastIndexOf(";") == -1
+          ? this.changeDataCode.length
+          : this.changeDataCode.lastIndexOf(";")
       );
       try {
-        let theLastCode = JSON.parse(theCode.replace(/(\w+):/g, '"$1":'));
+        let theLastCode = JSON5.parse(theCode.replaceAll(/(\w+):/g, '"$1":'));
         let thisTreeObject = this.changeDataObject;
-        let { c, label, parent, type, c_index } = thisTreeObject;  
-        let changeCompleteObject = this.convertToTree(theLastCode, label, c, parent, type, c_index); 
-        this.findThisFromTreeData(thisTreeObject , this.treeData , false , changeCompleteObject) 
+        let { c, label, parent, type, c_index } = thisTreeObject;
+        let changeCompleteObject = this.convertToTree(
+          theLastCode,
+          label,
+          c,
+          parent,
+          type,
+          c_index
+        );
+        this.findThisFromTreeData(
+          thisTreeObject,
+          this.getTreeData(),
+          false,
+          changeCompleteObject
+        );
+        this.$emit("ifTreeChange", this.reverseTree(this.getTreeData()));
       } catch (err) {
         console.log(err);
       }
-    }, 
+    },
   },
   mounted() {
     this.init();

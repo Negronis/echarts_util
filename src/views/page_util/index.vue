@@ -63,6 +63,7 @@ import "codemirror/addon/hint/javascript-hint.js";
 import "codemirror/addon/selection/active-line.js";
 
 import util from "./util";
+import store from '@/store'
 window.echarts = echarts;
 export default {
   components: {
@@ -136,6 +137,7 @@ option = {
     //子组件通知我改变
     ifTreeChange(option_child) {
       this.option = option_child;
+      store.commit("setTreeDataObject",option_child)
       //代码格式化
       var formattedCode = util.formattedCode(this.option, "option");
       this.optionCode = formattedCode;

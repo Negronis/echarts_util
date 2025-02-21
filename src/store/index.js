@@ -10,10 +10,21 @@ export default new Vuex.Store({
     reqTimer: "",
     deviceType: "pc",
     dpType: "new",
-    //要修改的数据
-    changeNode: {}
+    //树节点对象， 用于构建树节点
+    treeDataObject: {},
+    //树节点总数据 - 用来控制树节点子组件
+    treeData: {},
+    //树节点中，要修改的数据
+    changeNode: {},
+
   },
   getters: {
+    getTreeDataObject(state) {
+      return state.treeDataObject
+    },
+    getTreeData(state) {
+      return state.treeData
+    },
     getChangeNode(state) {
       return state.changeNode
     },
@@ -34,6 +45,12 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setTreeDataObject(state, n) {
+      state.treeDataObject = n
+    },
+    setTreeData(state, n) {
+      state.treeData = n;
+    },
     setChangeNode(state, n) {
       state.changeNode = n;
     },
