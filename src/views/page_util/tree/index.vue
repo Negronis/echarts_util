@@ -1,6 +1,13 @@
 <template>
-  <div style="height: calc(98vh); overflow-y: scroll" class="treeModal"> 
-    <div style="border: 1px solid #dcdee2; height: 100%; overflow-y: scroll;padding:10px;">
+  <div style="height: calc(98vh); overflow-y: scroll" class="treeModal">
+    <div
+      style="
+        border: 1px solid #dcdee2;
+        height: 100%;
+        overflow-y: scroll;
+        padding: 10px;
+      "
+    >
       <treeNode
         @childInjectMyChangeObject="childInjectMyChangeObject"
         :node="treeData"
@@ -35,7 +42,7 @@
 
 <script>
 import treeNode from "./tree_node/index.vue";
-import { codemirror } from "vue-codemirror"; 
+import { codemirror } from "vue-codemirror";
 import util from "../util";
 import store from "@/store";
 import JSON5 from "json5";
@@ -178,7 +185,8 @@ export default {
           );
         });
       } else {
-        node.value = (data && data.toString()) || "";
+        node.value = data === 0 ? 0 : data || "";
+        // && data.toString()
         node.type = this.checkType(node.value);
       }
       return node;
@@ -227,7 +235,7 @@ export default {
             if (e["c"] == c) {
               if (e["c_index"] == node["c_index"]) {
                 if (newData) {
-                  Object.assign(treData.children[i], newData);   //拷贝，保留关联关系
+                  Object.assign(treData.children[i], newData); //拷贝，保留关联关系
                   // treData.children[i] = newData;  //赋值，舍弃关联关系
                 }
                 store.commit("setTreeData", this.treeDataBF);

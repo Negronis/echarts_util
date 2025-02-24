@@ -6,21 +6,25 @@
       width="50%"
       class-name="vertical-center-modal-createCode"
     >
-      <div style="height: 50vh;border:1px solid;">
-        <div>
-          <Button @click="createCode('vue2')">Vue2</Button>
-        </div>
-        <div style="height: 90%; margin-top: 10px">
-          <codemirror
-            ref="cm"
-            v-model="optionCode"
-            :options="cmOptions"
-            @input="inputChange"
-          ></codemirror>
+      <div class="createCodePageModal">
+        <div style="height: 100%">
+          <div>
+            <Button @click="createCode('vue2')">Vue2</Button>
+          </div>
+          <div style="height: calc(100% - 40px); margin-top: 10px">
+            <codemirror
+              ref="cm"
+              v-model="optionCode"
+              :options="cmOptions"
+              @input="inputChange"
+            ></codemirror>
+          </div>
         </div>
       </div>
     </Modal>
-    {{ code }}
+    <div style="display: none">
+      {{ code }}
+    </div>
   </div>
 </template>
 
@@ -52,20 +56,28 @@ export default {
       this.showCreateCode = true;
     },
     createCode(type) {
+      store.commit("setCode", "");
       this.$emit("createCodeFunc", type);
     },
     inputChange() {
-        store.commit('setCode' , this.optionCode)
+      store.commit("setCode", this.optionCode);
     },
   },
 };
 </script>
 
-<style> 
-.vertical-center-modal-createCode .CodeMirror {
-  height: 45vh !important;
+<style>
+.createCodePageModal {
+  height: 60vh;
+}
+.createCodePageModal .CodeMirror {
+  width: 100%;
   border: 1px solid #dcdee2;
+  height: 100% !important;
   margin-bottom: 2px;
+}
+.createCodePageModal .vue-codemirror {
+  height: 100% !important;
 }
 .vertical-center-modal-createCode {
   display: flex;

@@ -9,17 +9,12 @@ class Echartsinit {
       let Charts = (this.echarts).init(dom);
       if (option) {
          Charts.setOption(option);
-      } 
-      //暂时不用Vuex存储Echars
-      // if (type) {
-      //    store.commit("setEObject", {
-      //       type:type,
-      //       data:Charts
-      //    })
-      // }
+      }  
       return Charts;
    };
+// 重新调整图表大小
    resize(Charts) {
+   // 调用Charts对象的resize方法
       Charts.resize();
    }
 }

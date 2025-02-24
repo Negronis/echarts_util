@@ -163,21 +163,30 @@ option = {
             </div>
           </template>
           <script>
+          import * as echarts from 'echarts'; 
           export default {
             data() {
               return {
-                charts:{},
+                charts:null,
                 option:${JSON5.stringify(this.option)}
               }
             },
             methods:{
-              initEcharts(){
+              echartsInit(dom, option, type){
+                if (!dom) {
+                  return {}
+                }
+                let Charts = echarts.init(dom);
+                if (option) {
+                  Charts.setOption(option);
+                }  
+                return Charts;
+              },
+              renderEcharts(){
                   if (!this.charts) {
                   let that = this;
                   this.$nextTick(() => {
-                    this.charts = Echartsinit.init(that.$refs.echarts_child, this.option);
-                    if (this.$refs.tree)
-                      this.$refs.tree.init && this.$refs.tree.init(this.option);
+                    this.charts = this.echartsInit(that.$refs.echarts_child, this.option); 
                   });
                   return;
                 }
@@ -185,7 +194,7 @@ option = {
               }, 
             },
             mounted(){
-              this.initEcharts();
+              this.renderEcharts();
             }
           }
           <\/script>
@@ -260,6 +269,7 @@ option = {
         this.charts.dispose();
         this.charts = null;
         this.option = null;
+        store.commit("setCode" , "")
         try {
           if (option) {
             option = null;
