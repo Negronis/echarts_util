@@ -7,7 +7,7 @@
 
             <div class="zHTitle">
                 <div style="height: 40px">
-                    <img src="@/assets/gryyLogoS.png" alt="">
+                    <!-- <img src="@/assets/gryyLogoS.png" alt=""> -->
                 </div>
                 <div>
                     秦皇岛市工人医院综合数据管理中心

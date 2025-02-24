@@ -1,7 +1,7 @@
 <template>
   <div style="padding: 5px">
     <div style="display: flex; gap: 10px">
-      <div style="width: 500px; height: calc(100vh - 30px)" class="pageU">
+      <div style="width: 500px; height: calc(100vh - 20px)" class="pageU">
         输入Options源码：
         <codemirror
           ref="cm"
@@ -27,21 +27,29 @@
             <div>背景色：</div>
             <Input style="width: 100px" type="text" v-model="backgroundColor" />
           </div>
+          <div style="display: flex; gap: 10px; align-items: center">
+            <div>背景图：</div>
+            <input
+              type="file"
+              accept="image/*"
+              @change="handleFileChange"
+              ref="fileInput"
+              style="display: none"
+            />
+            <Button type="primary" @click="uploadImage">上传</Button>
+          </div>
+          <div>
+            <Button type="primary" @click="showCreate">生成Vue代码</Button>
+          </div>
         </div>
         <div style="margin-top: 10px"></div>
-        <div
-          ref="echarts_child"
-          :style="{
-            width: typeof width == 'number' ? width + 'px' : width,
-            height: typeof height == 'number' ? height + 'px' : height,
-            background: backgroundColor,
-          }"
-        ></div>
+        <div ref="echarts_child" :style="echartsChildStyle"></div>
       </div>
       <div style="flex: 1; min-width: 400px">
         <tree @ifTreeChange="ifTreeChange" ref="tree" />
       </div>
     </div>
+    <createCode ref="createCode" @createCodeFunc="createCodeFunc" />
   </div>
 </template>
 
@@ -49,45 +57,48 @@
 import * as echarts from "echarts";
 import Echartsinit from "@/common/echarts_init";
 import tree from "./tree/index.vue";
+import createCode from "./createCode/index.vue";
 //集成在线编辑器
 import { codemirror } from "vue-codemirror";
-import "codemirror/theme/eclipse.css";
-import "codemirror/mode/javascript/javascript.js";
-import "codemirror/addon/fold/foldgutter.css";
-import "codemirror/addon/fold/foldcode";
-import "codemirror/addon/fold/foldgutter.js";
-import "codemirror/addon/fold/xml-fold";
-import "codemirror/addon/fold/brace-fold";
-import "codemirror/addon/fold/indent-fold";
-import "codemirror/addon/hint/javascript-hint.js";
-import "codemirror/addon/selection/active-line.js";
-
 import util from "./util";
-import store from '@/store'
+import store from "@/store";
+import JSON5 from "json5";
 window.echarts = echarts;
 export default {
   components: {
     tree,
     codemirror,
+    createCode,
+  },
+  computed: {
+    echartsChildStyle() {
+      let { width, height, backgroundColor, backgroundImage } = this;
+      return `   
+      width: ${typeof width == "number" ? width + "px" : width};
+      height: ${typeof height == "number" ? height + "px" : height};
+      background: ${backgroundImage ? "" : backgroundColor};
+      ${
+        backgroundImage
+          ? `background-image:${
+              backgroundImage ? "url(" + backgroundImage + ")" : ""
+            };background-size:100% 100%;`
+          : ""
+      }
+      `;
+    },
   },
   data() {
     return {
       // 编辑器配置
       cmOptions: util.cmOptions,
       dataList: [],
-      classOption: {
-        direction: 1,
-        step: 0.5,
-        limitMoveNum: 8,
-        //单步停顿
-        // singleHeight: 35
-      },
       charts: null,
       option: {},
       width: "100%",
       height: "50vh",
       backgroundColor: "#fff",
-      optionCode: ` 
+      backgroundImage: ``,
+      optionCode: `
          const data = [];
 for (let i = 0; i <= 360; i++) {
   let t = (i / 180) * Math.PI;
@@ -131,13 +142,110 @@ option = {
     };
   },
   methods: {
+    createCodeFunc(type) {
+      let { width, height, backgroundColor, backgroundImage } = this;
+      let style = [
+        `width: ${typeof width == "number" ? width + "px" : width}`,
+        `height: ${typeof height == "number" ? height + "px" : height}`,
+        `background: ${backgroundImage ? "" : backgroundColor}`,
+        backgroundImage
+          ? `background-image: url(${backgroundImage});background-size:100% 100%`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("; ");
+      let code;
+      if (type == "vue2") {
+        code = `
+          <template>
+            <div>
+              <div ref="echarts_child" style="${style}"></div> 
+            </div>
+          </template>
+          <script>
+          export default {
+            data() {
+              return {
+                charts:{},
+                option:${JSON5.stringify(this.option)}
+              }
+            },
+            methods:{
+              initEcharts(){
+                  if (!this.charts) {
+                  let that = this;
+                  this.$nextTick(() => {
+                    this.charts = Echartsinit.init(that.$refs.echarts_child, this.option);
+                    if (this.$refs.tree)
+                      this.$refs.tree.init && this.$refs.tree.init(this.option);
+                  });
+                  return;
+                }
+                this.charts.setOption(this.option);
+              }, 
+            },
+            mounted(){
+              this.initEcharts();
+            }
+          }
+          <\/script>
+        `;
+      }
+      store.commit("setCode", code);
+    },
+    showCreate() {
+      this.$nextTick(() => {
+        this.$refs.createCode.showDialog();
+      });
+    },
+    /** 图片上传相关方法 */
+    uploadImage() {
+      this.$nextTick(() => {
+        this.$refs.fileInput.click();
+      });
+    },
+    // 文件验证
+    validateFile(file) {
+      const validTypes = ["image/jpeg", "image/png", "image/gif"];
+      const maxSize = 10 * 1024 * 1024;
+
+      if (!validTypes.includes(file.type)) {
+        this.uploadError = "仅支持 JPG/PNG/GIF 格式的图片";
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        this.uploadError = "文件大小不能超过10MB";
+        return false;
+      }
+
+      return true;
+    },
+    // 图片上传监听
+    handleFileChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      // 验证文件类型和大小（示例：限制 2MB 以下）
+      if (!this.validateFile(file)) {
+        this.resetFileInput();
+        return;
+      }
+      this.selectedFile = file;
+      this.uploadError = null;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.backgroundImage = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    },
+    //
     inputChange(content) {
       this.$nextTick(() => {});
     },
     //子组件通知我改变
     ifTreeChange(option_child) {
       this.option = option_child;
-      store.commit("setTreeDataObject",option_child)
+      store.commit("setTreeDataObject", option_child);
       //代码格式化
       var formattedCode = util.formattedCode(this.option, "option");
       this.optionCode = formattedCode;
@@ -145,6 +253,8 @@ option = {
         this.charts.setOption(this.option);
       }
     },
+    /** 结束 */
+    // 渲染按钮事件
     renderE() {
       if (this.charts) {
         this.charts.dispose();
@@ -175,6 +285,7 @@ option = {
       this.option = renderJs();
       this.render();
     },
+    // Echarts渲染
     render() {
       if (!this.charts) {
         let that = this;
@@ -192,7 +303,7 @@ option = {
 </script> 
 <style>
 .pageU .CodeMirror {
-  height: 90vh !important;
+  height: 93vh !important;
   border: 1px solid #dcdee2;
   margin-bottom: 2px;
 }

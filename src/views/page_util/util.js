@@ -1,6 +1,16 @@
 import {
     format} from "prettier/standalone";
 import parserBabel from "prettier/parser-babel";
+import "codemirror/theme/eclipse.css";
+import "codemirror/mode/javascript/javascript.js";
+import "codemirror/addon/fold/foldgutter.css";
+import "codemirror/addon/fold/foldcode";
+import "codemirror/addon/fold/foldgutter.js";
+import "codemirror/addon/fold/xml-fold";
+import "codemirror/addon/fold/brace-fold";
+import "codemirror/addon/fold/indent-fold";
+import "codemirror/addon/hint/javascript-hint.js";
+import "codemirror/addon/selection/active-line.js";
 let util = {
     // 编辑器配置
     cmOptions: {

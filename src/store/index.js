@@ -16,9 +16,13 @@ export default new Vuex.Store({
     treeData: {},
     //树节点中，要修改的数据
     changeNode: {},
-
+    //生成代码
+    code: ``
   },
   getters: {
+    getCode(state) {
+      return state.code
+    },
     getTreeDataObject(state) {
       return state.treeDataObject
     },
@@ -45,6 +49,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setCode(state, n) {
+      state.code = n
+    },
     setTreeDataObject(state, n) {
       state.treeDataObject = n
     },

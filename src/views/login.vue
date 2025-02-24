@@ -13,7 +13,7 @@
                             <div
                                 style="display: flex;justify-content: space-around; align-items: center;padding-bottom:5px;border-bottom:1px solid #94B7E4">
                                 <div style="width:30px">
-                                    <img src="@/assets/login/3.png" alt="">
+                                    <!-- <img src="@/assets/login/3.png" alt=""> -->
                                 </div>
                                 <div style="flex:10;">
                                     <input v-model="username" placeholder="请输入账号" class="loginInput" type="text">
@@ -22,7 +22,7 @@
                             <div
                                 style="margin-top:20px;display: flex;align-items: center;padding-bottom:5px;border-bottom:1px solid #94B7E4">
                                 <div style="width:30px">
-                                    <img src="@/assets/login/4.png" alt="">
+                                    <!-- <img src="@/assets/login/4.png" alt=""> -->
                                 </div>
                                 <div style="flex:10;">
                                     <input v-model="password" placeholder="请输入密码" class="loginInput" type="password">
@@ -190,8 +190,7 @@ export default {
 <style>
 .loginBg {
     height: 100%;
-    width: 100%;
-    background-image: url(~@/assets/login/1.jpg);
+    width: 100%; 
     background-size: 100% 100%;
     margin: 0;
     padding: 0;
@@ -203,8 +202,7 @@ export default {
 .loginBlock {
     margin: auto;
     background-size: 100% 100%;
-    position: relative;
-    background-image: url(~@/assets/login/2.png);
+    position: relative; 
     position: absolute;
     right: 0;
     top: 0;
