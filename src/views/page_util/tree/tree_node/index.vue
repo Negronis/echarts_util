@@ -33,8 +33,15 @@
             </div>
             <div v-if="node.value != undefined">
               <input
+                v-if="typeof node.value != 'number'"
                 @input="(e) => changeInputSayToParent(e, node)"
                 type="text"
+                v-model="node.value"
+              />
+              <input
+                type="number"
+                v-else
+                @input="(e) => changeInputSayToParent(e, node)"
                 v-model="node.value"
               />
             </div>

@@ -185,7 +185,8 @@ export default {
           );
         });
       } else {
-        node.value = data === 0 ? 0 : data || "";
+        node.value =
+          data === 0 ? 0 : typeof data == "boolean" ? data : data || ""; // 0为数字0，false为布尔值false，其他为空字符串
         // && data.toString()
         node.type = this.checkType(node.value);
       }
